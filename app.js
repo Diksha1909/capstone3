@@ -5,13 +5,13 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
-const MongoStore = require('connect-mongo');
+const MongoStore = require('connect-mongo'); // Make sure this is v4+
 const ejsMate = require('ejs-mate');
 
 const authRoutes = require('./routes/auth');
 const taskRoutes = require('./routes/tasks');
 
-const app = express(); // <-- Declare app first
+const app = express();
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
@@ -28,19 +28,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Session store with MongoDB
-const store = MongoStore.create({
-  mongoUrl: process.env.MONGO_URI,
-  collectionName: 'sessions',
-  ttl: 14 * 24 * 60 * 60 // 14 days
-});
-
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  store: store,
+  store: MongoStore.create({ // Correct way for v4+
+      mongoUrl: process.env.MONGO_URI,
+      collectionName: 'sessions',
+      ttl: 14 * 24 * 60 * 60 // 14 days
+  }),
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24 * 14 // 14 days
+      maxAge: 1000 * 60 * 60 * 24 * 14 // 14 days
   }
 }));
 
