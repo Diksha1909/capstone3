@@ -1,0 +1,140 @@
+<% layout('layout', { title: 'My Dashboard', userId: typeof userId !== 'undefined' ? userId : null }) %>
+
+<div class="dashboard-wrapper">
+  <div class="glass-card">
+    <div class="dashboard-header">
+      <div class="title-section">
+        <h2>My Tasks</h2>
+        <span class="task-count"><%= tasks.length %> Items</span>
+      </div>
+      <a href="/logout" class="logout-icon" title="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </div>
+
+    <div class="control-panel">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Type to search...">
+      </div>
+      <div class="button-group">
+        <button id="searchBtn" class="btn-primary-sm">Search</button>
+        <button id="showAllBtn" class="btn-secondary-sm">Show All</button>
+      </div>
+    </div>
+
+    <form id="addTaskForm" action="/tasks/add" method="POST" class="add-task-form">
+      <input name="title" placeholder="Add a new task..." required autocomplete="off">
+      <button type="submit">
+        <i class="fas fa-plus"></i>
+      </button>
+    </form>
+
+    <div class="list-container">
+      <ul id="taskList">
+        <% tasks.forEach(task => { %>
+          <li class="task-row" data-title="<%= task.title.toLowerCase() %>">
+            <div class="task-info">
+              <span class="task-text <%= task.completed ? 'completed' : '' %>">
+                <%= task.title %>
+              </span>
+            </div>
+            <div class="task-actions">
+              <a href="/tasks/complete/<%=task._id%>" class="action-btn complete-btn" title="Complete">
+                <i class="<%= task.completed ? 'fas fa-check-double' : 'fas fa-check' %>"></i>
+              </a>
+              <a href="/tasks/delete/<%=task._id%>" class="action-btn delete-btn" title="Delete" onclick="return confirm('Delete this task?')">
+                <i class="fas fa-trash-alt"></i>
+              </a>
+            </div>
+          </li>
+        <% }) %>
+      </ul>
+
+      <% if (tasks.length === 0) { %>
+        <div class="empty-state">
+          <i class="fas fa-clipboard-list"></i>
+          <p>No tasks yet. Start by adding one!</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<style>
+
+  .dashboard-wrapper { width: 100%; max-width: 650px; margin: 20px auto; }
+  .glass-card { background: #fff; border-radius: 24px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+
+  .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+  .title-section h2 { font-size: 1.8rem; font-weight: 800; color: #0f172a; letter-spacing: -1px; }
+  .task-count { font-size: 0.85rem; color: var(--primary); font-weight: 600; background: #eff6ff; padding: 4px 12px; border-radius: 20px; }
+
+  .control-panel { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
+  .button-group { display: flex; gap: 10px; }
+  
+  .search-box { flex: 1; position: relative; display: flex; align-items: center; }
+  .search-box i { position: absolute; left: 15px; color: #94a3b8; }
+  .search-box input { width: 100%; padding: 12px 12px 12px 45px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 0.95rem; transition: 0.3s; }
+  .search-box input:focus { background: #fff; border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+
+
+  .btn-primary-sm, .btn-secondary-sm {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: 0.3s;
+  }
+  .btn-primary-sm { background: var(--primary); color: white; }
+  .btn-primary-sm:hover { background: var(--primary-hover); transform: translateY(-1px); }
+  .btn-secondary-sm { background: #f1f5f9; color: #475569; }
+  .btn-secondary-sm:hover { background: #e2e8f0; }
+
+  .add-task-form { display: flex; gap: 10px; margin-bottom: 30px; padding: 12px 15px; background: #f8fafc; border-radius: 16px; border: 1px dashed #cbd5e1; }
+  .add-task-form input { flex: 1; border: none; background: transparent; outline: none; font-size: 1rem; }
+  .add-task-form button { width: 42px; height: 42px; border-radius: 10px; background: var(--primary); color: white; border: none; cursor: pointer; transition: 0.3s; }
+  .add-task-form button:hover { transform: scale(1.1); background: var(--primary-hover); }
+
+  .list-container { max-height: 400px; overflow-y: auto; padding-right: 5px; }
+  .task-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f1f5f9; transition: 0.2s; }
+  .task-row:hover { background: #fcfdfe; }
+  .task-text.completed { text-decoration: line-through; color: #94a3b8; opacity: 0.7; }
+
+  .task-actions { display: flex; gap: 10px; }
+  .action-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; text-decoration: none; font-size: 0.85rem; }
+  .complete-btn { background: #ecfdf5; color: #10b981; }
+  .delete-btn { background: #fef2f2; color: #ef4444; }
+
+  @media (min-width: 480px) {
+    .control-panel { flex-direction: row; }
+    .button-group { flex: 0 0 auto; }
+  }
+</style>
+
+<script>
+  const searchInput = document.getElementById('searchInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const showAllBtn = document.getElementById('showAllBtn');
+  const taskRows = document.querySelectorAll('.task-row');
+
+  function performSearch() {
+    const filter = searchInput.value.toLowerCase().trim();
+    taskRows.forEach(row => {
+      const title = row.getAttribute('data-title');
+      row.style.display = title.includes(filter) ? 'flex' : 'none';
+    });
+  }
+
+  searchBtn.addEventListener('click', performSearch);
+  searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') performSearch();
+  });
+  showAllBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    taskRows.forEach(row => row.style.display = 'flex');
+  });
+</script>
