@@ -34,5 +34,5 @@ app.use(session({
 
 app.use('/', authRoutes);
 app.use('/tasks', taskRoutes);
-
-app.listen(3000, ()=>console.log("listening port 3000"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, ()=>console.log(`Server running on port ${PORT}`));
